@@ -123,8 +123,11 @@ class MMM(torch.nn.Module):
 
         for k in range(bs):
             index_motion = self.vqvae(base_pose[k:k+1, :m_length[k]].cuda(), type='encode')
+            actual_token_len = index_motion.shape[1]
             tokens[k, :start_t[k]] = index_motion[0][:start_t[k]]
-            tokens[k, end_t[k]:m_token_length[k]] = index_motion[0][end_t[k]:m_token_length[k]]
+            tokens[k, end_t[k]:actual_token_len] = index_motion[0][end_t[k]:actual_token_len]
+            # Update m_token_length to match actual length to avoid issues during decoding
+            m_token_length[k] = actual_token_len
 
         text = clip.tokenize(inbetween_text, truncate=True).cuda()
         feat_clip_text, word_emb_clip = clip_model(text)
