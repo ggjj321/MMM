@@ -139,7 +139,11 @@ class MMM(torch.nn.Module):
         pred_pose_eval = torch.zeros((bs, seq, base_pose.shape[-1])).cuda()
         for k in range(bs):
             pred_pose = self.vqvae(inpaint_index[k:k+1, :m_token_length[k]], type='decode')
-            pred_pose_eval[k:k+1, :int(m_length[k].item())] = pred_pose
+            # Handle potential length mismatch due to downsampling/upsampling
+            tgt_len = int(m_length[k].item())
+            dec_len = pred_pose.shape[1]
+            length_to_assign = min(tgt_len, dec_len)
+            pred_pose_eval[k:k+1, :length_to_assign] = pred_pose[:, :length_to_assign]
         return pred_pose_eval
 
     def long_range(self, text, lengths, num_transition_token=2, output='concat', index_motion=None):
