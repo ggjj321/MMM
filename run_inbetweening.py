@@ -9,9 +9,9 @@ import clip
 from exit.utils import visualize_2motions
 
 def get_args():
-    parser = option_trans.get_args_parser()
+    parser = option_trans.get_args_parser(parse_args=False)
     parser.add_argument('--motion-id', type=str, default=None, help='Motion ID to process (without extension)')
-    return parser
+    return parser.parse_args()
 
 def load_aist_data(data_root, motion_id):
     motion_path = os.path.join(data_root, 'new_joint_vecs', motion_id + '.npy')

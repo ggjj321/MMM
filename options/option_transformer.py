@@ -1,6 +1,6 @@
 import argparse
 
-def get_args_parser():
+def get_args_parser(parse_args=True):
     parser = argparse.ArgumentParser(description='Optimal Transport AutoEncoder training for Amass',
                                      add_help=True,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -69,4 +69,6 @@ def get_args_parser():
     parser.add_argument('--text', type=str, help='text')
     parser.add_argument('--length', type=int, help='length')
 
-    return parser.parse_args()
+    if parse_args:
+        return parser.parse_args()
+    return parser
