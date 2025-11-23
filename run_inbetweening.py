@@ -78,6 +78,8 @@ def get_args():
 
     # Custom arguments
     parser.add_argument('--motion-id', type=str, default=None, help='Motion ID to process (without extension)')
+    parser.add_argument('--base-text', type=str, default=None, help='Text for base motion generation')
+    parser.add_argument('--inbetween-text', type=str, default=None, help='Text for in-betweening')
     
     return parser.parse_args()
 
@@ -132,70 +134,69 @@ def main():
     mmm = MMM(args).to(device)
     mmm.eval()
     
-    # Load motion
-    if args.motion_id:
-        motion_id = args.motion_id
-    else:
-        # Pick random/first
-        train_txt = os.path.join(aist_root, 'train.txt')
-        with open(train_txt, 'r') as f:
-            motion_id = f.readline().strip()
-        print(f"No motion ID provided. Using first one: {motion_id}")
+    # User defined parameters or defaults
+    base_text_str = args.base_text if args.base_text else 'a person walks forward in a straight line.'
+    inbetween_text_str = args.inbetween_text if args.inbetween_text else 'A person jumps forward'
+    length_val = args.length if args.length else 196
     
-    print(f"Processing motion: {motion_id}")
-    try:
-        motion, text = load_aist_data(aist_root, motion_id)
-    except FileNotFoundError as e:
-        print(e)
-        return
+    print(f"Base Text: {base_text_str}")
+    print(f"Inbetween Text: {inbetween_text_str}")
+    print(f"Length: {length_val}")
 
-    print(f"Original Text: {text}")
+    text = [base_text_str]
+    m_length = torch.tensor([length_val]).long().to(device) # Ensure long and on device if needed, though snippet used .cuda() on call
     
-    # Normalize motion
-    norm_motion = (motion - mean) / std
-    norm_motion = torch.from_numpy(norm_motion).float().to(device).unsqueeze(0) # (1, seq_len, dim)
+    # Generate base pose
+    print("Generating base pose...")
+    with torch.no_grad():
+        # User snippet: base_pose = mmm(text, m_length.cuda(), rand_pos=False)
+        # We use m_length which is already on device or move it. 
+        # mmm.forward expects m_length on device usually.
+        base_pose = mmm(text, m_length, rand_pos=False)
     
-    # Define in-betweening parameters
-    seq_len = norm_motion.shape[1]
-    if seq_len < 40:
-        print(f"Motion too short ({seq_len}), skipping.")
-        return
-        
-    start_f = 20
-    end_f = seq_len - 20
+    # Calculate start and end frames
+    # User snippet: start_f = (m_length*.25).int(); end_f = (m_length*.75).int()
+    start_f = (m_length * 0.25).int()
+    end_f = (m_length * 0.75).int()
     
-    print(f"In-betweening from frame {start_f} to {end_f} with text: '{text}'")
+    inbetween_text = [inbetween_text_str] * len(text)
     
-    m_length = torch.tensor([seq_len]).to(device)
-    start_f_tensor = torch.tensor([start_f]).to(device)
-    end_f_tensor = torch.tensor([end_f]).to(device)
+    print(f"In-betweening from frame {start_f.item()} to {end_f.item()}...")
     
     with torch.no_grad():
-        pred_pose = mmm.inbetween_eval(norm_motion, m_length, start_f_tensor, end_f_tensor, [text])
+        # User snippet: pred_pose_inbetween = mmm.inbetween_eval(base_pose, m_length, start_f, end_f, inbetween_text)
+        pred_pose_inbetween = mmm.inbetween_eval(base_pose, m_length, start_f, end_f, inbetween_text)
     
-    # Prepare for visualization (normalized numpy)
-    pred_pose_norm_npy = pred_pose.cpu().numpy()[0]
-    
-    # Denormalize for saving npy
-    pred_pose_denorm = pred_pose_norm_npy * std + mean
+    # Visualization
+    k = 0
+    # User snippet: x = pred_pose_inbetween[k, :m_length[k]].detach().cpu().numpy()
+    x = pred_pose_inbetween[k, :m_length[k]].detach().cpu().numpy()
+    l = m_length[k].item()
+    caption = inbetween_text[k]
     
     # Save result
     out_dir = './output_inbetween'
     os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, f'{motion_id}_inbetween.npy')
-    np.save(out_path, pred_pose_denorm)
-    print(f"Saved result to {out_path}")
     
-    # Save original
-    orig_path = os.path.join(out_dir, f'{motion_id}_original.npy')
-    np.save(orig_path, motion)
-    print(f"Saved original to {orig_path}")
+    # Save npy
+    # Note: x is normalized. We usually save denormalized or normalized depending on pipeline. 
+    # The original code saved denormalized.
+    x_denorm = x * std + mean
+    out_path = os.path.join(out_dir, 'inbetween_result.npy')
+    np.save(out_path, x_denorm)
+    print(f"Saved result to {out_path}")
 
-    # Visualize
-    html_path = os.path.join(out_dir, f'{motion_id}.html')
+    html_path = os.path.join(out_dir, 'inbetween_result.html')
     print(f"Visualizing to {html_path}...")
-    # visualize_2motions expects normalized motion and does denormalization internally
-    visualize_2motions(pred_pose_norm_npy, std, mean, 't2m', seq_len, save_path=html_path)
+    
+    # User snippet: visualize_2motions(x, val_loader.dataset.std, val_loader.dataset.mean, 't2m', l)
+    # We don't have val_loader here, but we loaded std and mean from AIST++ (or t2m if we had it).
+    # The user snippet implies using t2m std/mean. 
+    # In this script we loaded AIST++ mean/std at the top. 
+    # If the model is trained on t2m, we should ideally use t2m mean/std. 
+    # However, the script previously loaded AIST++ mean/std. 
+    # Assuming 'std' and 'mean' variables from earlier are correct to use.
+    visualize_2motions(x, std, mean, 't2m', l, save_path=html_path)
 
 if __name__ == '__main__':
     main()
