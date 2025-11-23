@@ -114,13 +114,17 @@ def main():
     aist_root = './AIST++'
     mean_path = os.path.join(aist_root, 'Mean.npy')
     std_path = os.path.join(aist_root, 'Std.npy')
+
+    humanml3d_root = './content/drive/MyDrive/cvpdl/final_exp/MMM/dataset/HumanML3D'
+    humanml3d_mean_path = os.path.join(humanml3d_root, 'Mean.npy')
+    humanml3d_std_path = os.path.join(humanml3d_root, 'Std.npy')
     
     if not os.path.exists(mean_path) or not os.path.exists(std_path):
         print("Error: AIST++ Mean/Std not found. Please ensure AIST++ dataset is properly set up.")
         return
     
-    mean = np.load(mean_path)
-    std = np.load(std_path)
+    mean = np.load(humanml3d_mean_path)
+    std = np.load(humanml3d_std_path)
     
     # Initialize MMM model
     args.dataname = 't2m' # Force t2m for model config compatibility
