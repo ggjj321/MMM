@@ -49,6 +49,10 @@ if args.dataname == 'kit' :
     dataset_opt_path = 'checkpoints/kit/Comp_v6_KLD005/opt.txt'  
     args.nb_joints = 21
     
+elif args.dataname == 'aist':
+    dataset_opt_path = 'checkpoints/t2m/Comp_v6_KLD005/opt.txt'
+    args.nb_joints = 22
+    
 else :
     dataset_opt_path = 'checkpoints/t2m/Comp_v6_KLD005/opt.txt'
     args.nb_joints = 22

@@ -6,7 +6,7 @@
 # Configuration
 PRETRAINED_VQVAE="/path/to/pretrained/vqvae/net_last.pth"  # UPDATE THIS PATH
 OUTPUT_DIR="output/vq_aist_$(date +%Y%m%d_%H%M%S)"
-DATANAME="t2m"  # Use 't2m' if AIST++ is in HumanML3D format, or modify dataset loader
+DATANAME="aist"  # Use AIST++ dataset configuration
 
 # Training Parameters
 BATCH_SIZE=256
