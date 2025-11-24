@@ -4,7 +4,7 @@
 # Stage 1: Fine-tune VQ-VAE encoder/decoder
 
 # Configuration
-PRETRAINED_VQVAE="/path/to/pretrained/vqvae/net_last.pth"  # UPDATE THIS PATH
+PRETRAINED_VQVAE="/content/MMM/output/vq/2024-06-03-20-22-07_retrain/net_last.pth"  # UPDATE THIS PATH
 OUTPUT_DIR="output/vq_aist_$(date +%Y%m%d_%H%M%S)"
 DATANAME="aist"  # Use AIST++ dataset configuration
 

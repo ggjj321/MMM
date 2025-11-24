@@ -48,9 +48,25 @@ class Text2MotionDataset(data.Dataset):
             self.max_motion_length = 196
             kinematic_chain = paramUtil.kit_kinematic_chain
             self.meta_dir = 'checkpoints/kit/VQVAEV3_CB1024_CMT_H1024_NRES3/meta'
+        elif dataset_name == 'aist':
+            self.data_root = './AIST++'
+            self.motion_dir = pjoin(self.data_root, 'new_joint_vecs')
+            self.text_dir = pjoin(self.data_root, 'texts')
+            self.joints_num = 22
+            radius = 4
+            fps = 20
+            self.max_motion_length = 196
+            dim_pose = 263
+            kinematic_chain = paramUtil.t2m_kinematic_chain
+            self.meta_dir = self.data_root  # Mean.npy and Std.npy are at root level
 
-        mean = np.load(pjoin(self.meta_dir, 'mean.npy'))
-        std = np.load(pjoin(self.meta_dir, 'std.npy'))
+        # Handle case-sensitive filenames for AIST++ (Mean.npy vs mean.npy)
+        if dataset_name == 'aist':
+            mean = np.load(pjoin(self.meta_dir, 'Mean.npy'))
+            std = np.load(pjoin(self.meta_dir, 'Std.npy'))
+        else:
+            mean = np.load(pjoin(self.meta_dir, 'mean.npy'))
+            std = np.load(pjoin(self.meta_dir, 'std.npy'))
         
         if is_test:
             split_file = pjoin(self.data_root, 'test.txt')
