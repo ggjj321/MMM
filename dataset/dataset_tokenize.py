@@ -40,11 +40,26 @@ class VQMotionDataset(data.Dataset):
             self.max_motion_length = 196
             self.meta_dir = 'checkpoints/kit/VQVAEV3_CB1024_CMT_H1024_NRES3/meta'
             #kinematic_chain = paramUtil.kit_kinematic_chain
+        elif dataset_name == 'aist':
+            self.data_root = './AIST++'
+            self.motion_dir = pjoin(self.data_root, 'new_joint_vecs')
+            self.text_dir = pjoin(self.data_root, 'texts')
+            self.joints_num = 22
+            radius = 4
+            fps = 20
+            self.dim_pose = 263
+            self.max_motion_length = 1000  # Increased for longer AIST++ dance sequences
+            self.meta_dir = self.data_root
         
         joints_num = self.joints_num
 
-        mean = np.load(pjoin(self.meta_dir, 'mean.npy'))
-        std = np.load(pjoin(self.meta_dir, 'std.npy'))
+        # Handle case-sensitive filenames for AIST++ (Mean.npy vs mean.npy)
+        if dataset_name == 'aist':
+            mean = np.load(pjoin(self.meta_dir, 'Mean.npy'))
+            std = np.load(pjoin(self.meta_dir, 'Std.npy'))
+        else:
+            mean = np.load(pjoin(self.meta_dir, 'mean.npy'))
+            std = np.load(pjoin(self.meta_dir, 'std.npy'))
         
         split_file = pjoin(self.data_root, 'train.txt')
         
@@ -59,7 +74,7 @@ class VQMotionDataset(data.Dataset):
         for name in tqdm(id_list):
             try:
                 motion = np.load(pjoin(self.motion_dir, name + '.npy'))
-                if (len(motion)) < min_motion_len or (len(motion) >= 200):
+                if (len(motion)) < min_motion_len or (len(motion) >= self.max_motion_length):
                     continue
 
                 data_dict[name] = {'motion': motion,

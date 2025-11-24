@@ -88,8 +88,10 @@ def evaluation_vqvae(out_dir, val_loader, net, logger, writer, nb_iter, best_fid
     gt_mu, gt_cov  = calculate_activation_statistics(motion_annotation_np)
     mu, cov= calculate_activation_statistics(motion_pred_np)
 
-    diversity_real = calculate_diversity(motion_annotation_np, 300 if nb_sample > 300 else 100)
-    diversity = calculate_diversity(motion_pred_np, 300 if nb_sample > 300 else 100)
+    # Use min to handle small validation sets (e.g., AIST++)
+    diversity_times = min(nb_sample, 300 if nb_sample > 300 else 100)
+    diversity_real = calculate_diversity(motion_annotation_np, diversity_times)
+    diversity = calculate_diversity(motion_pred_np, diversity_times)
 
     R_precision_real = R_precision_real / nb_sample
     R_precision = R_precision / nb_sample
@@ -274,8 +276,10 @@ def evaluation_transformer(out_dir, val_loader, net, trans, logger, writer, nb_i
     gt_mu, gt_cov  = calculate_activation_statistics(motion_annotation_np)
     mu, cov= calculate_activation_statistics(motion_pred_np)
 
-    diversity_real = calculate_diversity(motion_annotation_np, 300 if nb_sample > 300 else 100)
-    diversity = calculate_diversity(motion_pred_np, 300 if nb_sample > 300 else 100)
+    # Use min to handle small validation sets (e.g., AIST++)
+    diversity_times = min(nb_sample, 300 if nb_sample > 300 else 100)
+    diversity_real = calculate_diversity(motion_annotation_np, diversity_times)
+    diversity = calculate_diversity(motion_pred_np, diversity_times)
 
     R_precision_real = R_precision_real / nb_sample
     R_precision = R_precision / nb_sample
@@ -481,8 +485,10 @@ def evaluation_transformer_uplow(out_dir, val_loader, net, trans, logger, writer
     gt_mu, gt_cov  = calculate_activation_statistics(motion_annotation_np)
     mu, cov= calculate_activation_statistics(motion_pred_np)
 
-    diversity_real = calculate_diversity(motion_annotation_np, 300 if nb_sample > 300 else 100)
-    diversity = calculate_diversity(motion_pred_np, 300 if nb_sample > 300 else 100)
+    # Use min to handle small validation sets (e.g., AIST++)
+    diversity_times = min(nb_sample, 300 if nb_sample > 300 else 100)
+    diversity_real = calculate_diversity(motion_annotation_np, diversity_times)
+    diversity = calculate_diversity(motion_pred_np, diversity_times)
 
     R_precision_real = R_precision_real / nb_sample
     R_precision = R_precision / nb_sample
@@ -665,8 +671,10 @@ def evaluation_transformer_test(out_dir, val_loader, net, trans, logger, writer,
     gt_mu, gt_cov  = calculate_activation_statistics(motion_annotation_np)
     mu, cov= calculate_activation_statistics(motion_pred_np)
 
-    diversity_real = calculate_diversity(motion_annotation_np, 300 if nb_sample > 300 else 100)
-    diversity = calculate_diversity(motion_pred_np, 300 if nb_sample > 300 else 100)
+    # Use min to handle small validation sets (e.g., AIST++)
+    diversity_times = min(nb_sample, 300 if nb_sample > 300 else 100)
+    diversity_real = calculate_diversity(motion_annotation_np, diversity_times)
+    diversity = calculate_diversity(motion_pred_np, diversity_times)
 
     R_precision_real = R_precision_real / nb_sample
     R_precision = R_precision / nb_sample

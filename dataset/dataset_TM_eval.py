@@ -55,7 +55,7 @@ class Text2MotionDataset(data.Dataset):
             self.joints_num = 22
             radius = 4
             fps = 20
-            self.max_motion_length = 196
+            self.max_motion_length = 1000  # Increased for longer AIST++ dance sequences
             dim_pose = 263
             kinematic_chain = paramUtil.t2m_kinematic_chain
             self.meta_dir = self.data_root  # Mean.npy and Std.npy are at root level
@@ -89,7 +89,7 @@ class Text2MotionDataset(data.Dataset):
         for name in tqdm(id_list):
             try:
                 motion = np.load(pjoin(self.motion_dir, name + '.npy'))
-                if (len(motion)) < min_motion_len or (len(motion) >= 200):
+                if (len(motion)) < min_motion_len or (len(motion) >= self.max_motion_length):
                     continue
                 text_data = []
                 flag = False
@@ -112,7 +112,7 @@ class Text2MotionDataset(data.Dataset):
                         else:
                             try:
                                 n_motion = motion[int(f_tag*fps) : int(to_tag*fps)]
-                                if (len(n_motion)) < min_motion_len or (len(n_motion) >= 200):
+                                if (len(n_motion)) < min_motion_len or (len(n_motion) >= self.max_motion_length):
                                     continue
                                 new_name = random.choice('ABCDEFGHIJKLMNOPQRSTUVW') + '_' + name
                                 while new_name in data_dict:
