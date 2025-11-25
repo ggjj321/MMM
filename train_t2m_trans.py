@@ -113,7 +113,10 @@ net.cuda()
 if args.resume_trans is not None:
     print ('loading transformer checkpoint from {}'.format(args.resume_trans))
     ckpt = torch.load(args.resume_trans, map_location='cpu')
-    trans_encoder.load_state_dict(ckpt['trans'], strict=True)
+    # Use strict=False to allow position encoding size mismatch (for dynamic length support)
+    missing_keys, unexpected_keys = trans_encoder.load_state_dict(ckpt['trans'], strict=False)
+    if missing_keys:
+        print(f"Note: {len(missing_keys)} parameters not loaded from checkpoint (possibly due to extended position encodings)")
 trans_encoder.train()
 trans_encoder.cuda()
 trans_encoder = torch.nn.DataParallel(trans_encoder)
