@@ -43,11 +43,19 @@ if not hasattr(args, 'lora_dropout'):
 
 torch.manual_seed(args.seed)
 
+
 init_save_folder(args)
 
-args.vq_dir = f'./output/vq/{args.vq_name}'
-codebook_dir = f'{args.vq_dir}/codebook/'
-args.resume_pth = f'{args.vq_dir}/net_last.pth'
+# Only use default VQ paths if resume_pth is not provided
+if args.resume_pth is None:
+    args.vq_dir = f'./output/vq/{args.vq_name}'
+    codebook_dir = f'{args.vq_dir}/codebook/'
+    args.resume_pth = f'{args.vq_dir}/net_last.pth'
+else:
+    # Use user-provided path, infer vq_dir from it
+    args.vq_dir = os.path.dirname(args.resume_pth)
+    codebook_dir = f'{args.vq_dir}/codebook/'
+
 os.makedirs(args.vq_dir, exist_ok = True)
 os.makedirs(codebook_dir, exist_ok = True)
 os.makedirs(args.out_dir, exist_ok = True)
