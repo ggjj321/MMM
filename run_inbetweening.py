@@ -43,7 +43,7 @@ def get_args():
     parser.add_argument('--vq-act', type=str, default='relu', choices = ['relu', 'silu', 'gelu'], help='dataset directory')
 
     ## gpt arch
-    parser.add_argument("--block-size", type=int, default=51, help="seq len")
+    parser.add_argument("--block-size", type=int, default=256, help="maximum sequence length (increased for dynamic length support)")
     parser.add_argument("--embed-dim-gpt", type=int, default=1024, help="embedding dimension")
     parser.add_argument("--clip-dim", type=int, default=512, help="latent dimension in the clip feature")
     parser.add_argument("--num-layers", type=int, default=9, help="nb of transformer layers")

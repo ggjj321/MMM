@@ -46,7 +46,8 @@ class Decoder_Transformer(nn.Module):
         # transformer block
         self.blocks = nn.Sequential(*[Block(embed_dim, block_size, n_head, drop_out_rate, fc_rate) for _ in range(num_layers)])
         self.up_sample = PatchUpSampling(embed_dim)
-        self.pos_embed = pos_encoding.PositionEmbedding(block_size, embed_dim, 0.0, False)
+        # Use larger max_len for position embedding to support dynamic lengths
+        self.pos_embed = pos_encoding.PositionEmbedding(max(block_size, 256), embed_dim, 0.0, False)
         self.head = nn.Sequential(nn.LayerNorm(embed_dim),
                             nn.Linear(embed_dim, output_dim))
         self.block_size = block_size
@@ -123,7 +124,8 @@ class Encoder_Transformer(nn.Module):
         self.weighted_mean_norm = nn.LayerNorm(embed_dim)
         self.weighted_mean = torch.nn.Conv1d(in_channels=block_size, out_channels=1, kernel_size=1)
 
-        self.pos_embed = pos_encoding.PositionEmbedding(block_size, embed_dim, 0.0, False)
+        # Use larger max_len for position embedding to support dynamic lengths  
+        self.pos_embed = pos_encoding.PositionEmbedding(max(block_size, 256), embed_dim, 0.0, False)
         self.head = nn.Sequential(nn.LayerNorm(embed_dim),
                             nn.Linear(embed_dim, output_dim))
         self.block_size = block_size
@@ -530,7 +532,8 @@ class CrossCondTransBase(nn.Module):
         self.drop = nn.Dropout(drop_out_rate)
         # transformer block
         self.blocks = nn.Sequential(*[Block(embed_dim, block_size, n_head, drop_out_rate, fc_rate) for _ in range(num_layers-num_local_layer)])
-        self.pos_embed = pos_encoding.PositionEmbedding(block_size, embed_dim, 0.0, False)
+        # Use larger max_len for position embedding to support dynamic lengths
+        self.pos_embed = pos_encoding.PositionEmbedding(max(block_size, 1024), embed_dim, 0.0, False)
 
         self.num_local_layer = num_local_layer
         if num_local_layer > 0:
@@ -557,7 +560,9 @@ class CrossCondTransBase(nn.Module):
             token_embeddings = self.cond_emb(clip_feature).unsqueeze(1)
         else:
             b, t = idx.size()
-            assert t <= self.block_size, "Cannot forward, model block size is exhausted."
+            # Relaxed block_size check - warn but allow longer sequences
+            if t > self.block_size:
+                print(f"Warning: sequence length {t} exceeds block_size {self.block_size}, using dynamic position encoding")
             # forward the Trans model
             not_learn_idx = idx<self.vqvae.vqvae.num_code
             learn_idx = ~not_learn_idx

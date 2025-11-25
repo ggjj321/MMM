@@ -120,6 +120,10 @@ class MMM(torch.nn.Module):
         m_token_length = torch.ceil((m_length)/4).int()
         start_t = torch.round((start_f)/4).int()
         end_t = torch.round((end_f)/4).int()
+        
+        # Calculate max token length dynamically to support variable length sequences
+        max_token_len = int(m_token_length.max().item()) + 1
+        tokens = -1*torch.ones((bs, max_token_len), dtype=torch.long).cuda()
 
         for k in range(bs):
             index_motion = self.vqvae(base_pose[k:k+1, :m_length[k]].cuda(), type='encode')
