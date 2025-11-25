@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 ./output/*
 AIST++/
+vq_aist_20251124_152123/
 *.zip
 *.DS_Store
 checkpoints

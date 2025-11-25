@@ -65,9 +65,10 @@ def get_args_parser(parse_args=True):
     parser.add_argument("--if-maxtest", action='store_true', help="test in max")
     parser.add_argument('--pkeep', type=float, default=.5, help='keep rate for gpt training')
     
-    ## generator
-    parser.add_argument('--text', type=str, help='text')
-    parser.add_argument('--length', type=int, help='length')
+    ## LoRA arguments
+    parser.add_argument('--lora-rank', type=int, default=8, help='LoRA rank (typical: 4, 8, 16)')
+    parser.add_argument('--lora-alpha', type=float, default=16, help='LoRA alpha scaling factor (typical: 2*rank)')
+    parser.add_argument('--lora-dropout', type=float, default=0.1, help='LoRA dropout rate')
 
     if parse_args:
         return parser.parse_args()
