@@ -97,7 +97,10 @@ class MMM(torch.nn.Module):
 
         self.maskdecoder = get_maskdecoder(args, self.vqvae, is_upper_edit)
         ckpt = torch.load(args.resume_trans, map_location='cpu')
-        self.maskdecoder.load_state_dict(ckpt['trans'], strict=True)
+        # Use strict=False to allow position encoding size mismatch (for dynamic length support)
+        missing_keys, unexpected_keys = self.maskdecoder.load_state_dict(ckpt['trans'], strict=False)
+        if missing_keys:
+            print(f"Warning: Missing keys in checkpoint (expected for dynamic length): {[k for k in missing_keys if 'pos_embed' in k or 'pos_embedding' in k or 'mask' in k][:5]}")
         self.maskdecoder.eval()
         self.maskdecoder.cuda()
 

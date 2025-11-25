@@ -123,8 +123,8 @@ def main():
         print("Error: AIST++ Mean/Std not found. Please ensure AIST++ dataset is properly set up.")
         return
     
-    mean = np.load(humanml3d_mean_path)
-    std = np.load(humanml3d_std_path)
+    mean = np.load(mean_path)
+    std = np.load(std_path)
     
     # Initialize MMM model
     args.dataname = 't2m' # Force t2m for model config compatibility

@@ -3,7 +3,8 @@ __pycache__/
 *.py[cod]
 ./output/*
 AIST++/
-
+*.zip
+*.DS_Store
 checkpoints
 glove
 dataset/HumanML3D
