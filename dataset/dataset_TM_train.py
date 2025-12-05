@@ -55,7 +55,7 @@ class Text2MotionDataset(data.Dataset):
             self.joints_num = 22
             radius = 4
             fps = 20
-            self.max_motion_length = 26 if unit_length == 8 else 50
+            self.max_motion_length = 26 if unit_length == 8 else 40
             dim_pose = 263
             kinematic_chain = paramUtil.t2m_kinematic_chain
 
