@@ -144,7 +144,29 @@ if args.resume_trans is not None:
     print(f'Loading pretrained transformer from {args.resume_trans}')
     ckpt = torch.load(args.resume_trans, map_location='cpu')
     # Use strict=False for dynamic length support
-    missing_keys, unexpected_keys = trans_encoder.load_state_dict(ckpt['trans'], strict=False)
+    # Custom loading logic to handle size mismatch (51 -> 42)
+    state_dict = ckpt['trans']
+    model_dict = trans_encoder.state_dict()
+    
+    for key, value in state_dict.items():
+        if key in model_dict:
+            if value.shape != model_dict[key].shape:
+                # Handle pos_embedding mismatch
+                if 'pos_embedding' in key or 'pos_embed' in key:
+                    print(f"Resizing {key}: {value.shape} -> {model_dict[key].shape}")
+                    # Truncate to match model size
+                    if len(value.shape) == 2:
+                        state_dict[key] = value[:model_dict[key].shape[0], :]
+                    elif len(value.shape) == 3:
+                        state_dict[key] = value[:model_dict[key].shape[0], :, :]
+                # Handle attention mask mismatch
+                elif 'mask' in key:
+                    print(f"Resizing {key}: {value.shape} -> {model_dict[key].shape}")
+                    # Truncate mask (usually last two dims are sequence length)
+                    if len(value.shape) == 4:
+                        state_dict[key] = value[:, :, :model_dict[key].shape[2], :model_dict[key].shape[3]]
+
+    missing_keys, unexpected_keys = trans_encoder.load_state_dict(state_dict, strict=False)
     if missing_keys:
         print(f"Note: {len(missing_keys)} parameters not loaded (possibly due to extended position encodings)")
 else:
