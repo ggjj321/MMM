@@ -144,7 +144,7 @@ if args.resume_trans is not None:
     print(f'Loading pretrained transformer from {args.resume_trans}')
     ckpt = torch.load(args.resume_trans, map_location='cpu')
     # Use strict=False for dynamic length support
-    # Custom loading logic to handle size mismatch (51 -> 42)
+    # Custom loading logic to handle size mismatch (51 -> 42 or 51 -> 1024)
     state_dict = ckpt['trans']
     model_dict = trans_encoder.state_dict()
     
@@ -154,11 +154,26 @@ if args.resume_trans is not None:
                 # Handle pos_embedding mismatch
                 if 'pos_embedding' in key or 'pos_embed' in key:
                     print(f"Resizing {key}: {value.shape} -> {model_dict[key].shape}")
-                    # Truncate to match model size
-                    if len(value.shape) == 2:
-                        state_dict[key] = value[:model_dict[key].shape[0], :]
-                    elif len(value.shape) == 3:
-                        state_dict[key] = value[:model_dict[key].shape[0], :, :]
+                    target_shape = model_dict[key].shape
+                    
+                    # Case 1: Checkpoint larger than model (Truncate) e.g. 51 -> 42
+                    if value.shape[0] > target_shape[0]:
+                        if len(value.shape) == 2:
+                            state_dict[key] = value[:target_shape[0], :]
+                        elif len(value.shape) == 3:
+                            state_dict[key] = value[:target_shape[0], :, :]
+                            
+                    # Case 2: Checkpoint smaller than model (Pad/Copy) e.g. 51 -> 1024
+                    elif value.shape[0] < target_shape[0]:
+                        new_tensor = torch.zeros(target_shape, device=value.device, dtype=value.dtype)
+                        # Copy existing weights
+                        if len(value.shape) == 2:
+                            new_tensor[:value.shape[0], :] = value
+                        elif len(value.shape) == 3:
+                            new_tensor[:value.shape[0], :, :] = value
+                        # Note: Remaining positions are 0. Ideally they should be initialized or finetuned.
+                        state_dict[key] = new_tensor
+
                 # Handle attention mask mismatch
                 elif 'mask' in key:
                     print(f"Resizing {key}: {value.shape} -> {model_dict[key].shape}")
